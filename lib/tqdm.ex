@@ -27,13 +27,13 @@ defmodule Tqdm do
   """
 
   @type option ::
-    {:description, String.t} |
-    {:total, non_neg_integer} |
-    {:clear, boolean} |
-    {:device, IO.device} |
-    {:min_interval, non_neg_integer} |
-    {:min_iterations, non_neg_integer} |
-    {:total_segments, non_neg_integer}
+          {:description, String.t()}
+          | {:total, non_neg_integer}
+          | {:clear, boolean}
+          | {:device, IO.device()}
+          | {:min_interval, non_neg_integer}
+          | {:min_iterations, non_neg_integer}
+          | {:total_segments, non_neg_integer}
 
   @type options :: [option]
 
@@ -77,7 +77,7 @@ defmodule Tqdm do
       segments. You can customize this by passing a different value for this
       option.
   """
-  @spec tqdm(Enumerable.t, options) :: Enumerable.t
+  @spec tqdm(Enumerable.t(), options) :: Enumerable.t()
   def tqdm(enumerable, options \\ []) do
     start_fun = fn ->
       now = System.monotonic_time()
@@ -97,7 +97,7 @@ defmodule Tqdm do
         min_interval:
           options
           |> Keyword.get(:min_interval, 100)
-          |> System.convert_time_unit(:milliseconds, :native),
+          |> System.convert_time_unit(:millisecond, :native),
         min_iterations: Keyword.get(options, :min_iterations, 1),
         total_segments: Keyword.get(options, :total_segments, 10)
       }
@@ -114,10 +114,11 @@ defmodule Tqdm do
   end
 
   defp do_tqdm(
-    element,
-    %{n: n, last_print_n: last_print_n, min_iterations: min_iterations} = state
-  ) when n - last_print_n < min_iterations,
-    do: {[element], %{state | n: n + 1}}
+         element,
+         %{n: n, last_print_n: last_print_n, min_iterations: min_iterations} = state
+       )
+       when n - last_print_n < min_iterations,
+       do: {[element], %{state | n: n + 1}}
 
   defp do_tqdm(element, state) do
     now = System.monotonic_time()
@@ -168,7 +169,7 @@ defmodule Tqdm do
 
   defp format_status(state, now) do
     elapsed =
-      System.convert_time_unit(now - state.start_time, :native, :microseconds)
+      System.convert_time_unit(now - state.start_time, :native, :microsecond)
 
     elapsed_str = format_interval(elapsed, false)
 
@@ -194,7 +195,7 @@ defmodule Tqdm do
       left = format_left(n, elapsed, total)
 
       "|#{bar}| #{n}/#{total} #{percentage} " <>
-      "[elapsed: #{elapsed_str} left: #{left}, #{rate} iters/sec]"
+        "[elapsed: #{elapsed_str} left: #{left}, #{rate} iters/sec]"
     else
       "#{n} [elapsed: #{elapsed_str}, #{rate} iters/sec]"
     end
@@ -202,16 +203,18 @@ defmodule Tqdm do
 
   defp format_rate(elapsed, n) when elapsed > 0,
     do: Float.round(n / (elapsed / 1_000_000), 2)
+
   defp format_rate(_elapsed, _n),
     do: "?"
 
   defp format_bar(num_segments, total_segments) do
     String.duplicate("#", num_segments) <>
-    String.duplicate("-", total_segments - num_segments)
+      String.duplicate("-", total_segments - num_segments)
   end
 
   defp format_left(n, elapsed, total) when n > 0,
     do: format_interval(elapsed / n * (total - n), true)
+
   defp format_left(_n, _elapsed, _total),
     do: "?"
 
@@ -233,6 +236,7 @@ defmodule Tqdm do
 
   defp format_time_component(time) when time < 10,
     do: "0#{time}"
+
   defp format_time_component(time),
     do: to_string(time)
 end
